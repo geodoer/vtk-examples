@@ -1,4 +1,5 @@
 ﻿//https://kitware.github.io/vtk-examples/site/Cxx/Visualization/StructuredDataTypes/
+//3D结构体数据的类型
 #include <vtkDataSetMapper.h>
 #include <vtkDoubleArray.h>
 #include <vtkImageData.h>
@@ -15,14 +16,23 @@
 #include <vtkXMLRectilinearGridWriter.h>
 #include <vtkXMLStructuredGridWriter.h>
 
-namespace {
-void ImageData(vtkImageData* data, const int gridSize);
-void RectilinearGrid(vtkRectilinearGrid* data, const int gridSize);
-void StructuredGrid(vtkStructuredGrid* data, const int gridSize);
-} // namespace
+//
+//创建三种格网
+//
+namespace
+{
+	//@vtkImageData@创建
+	void ImageData(vtkImageData* data, const int gridSize);
+	//@vtkRectilinearGrid@创建
+	void RectilinearGrid(vtkRectilinearGrid* data, const int gridSize);
+	//@vtkStructuredGrid@创建
+	void StructuredGrid(vtkStructuredGrid* data, const int gridSize);
+}
 
 int main(int, char*[])
 {
+	//颜色映射表
+	//@vtkNamedColors@用法
 	vtkNew<vtkNamedColors> colors;
 
 	int gridSize = 5;
@@ -60,21 +70,25 @@ int main(int, char*[])
 	structuredGridActor->GetProperty()->SetColor(
 		colors->GetColor3d("MidnightBlue").GetData());
 
-	// There will be one render window
+	//渲染窗口（剧院）
 	vtkNew<vtkRenderWindow> renderWindow;
 	renderWindow->SetSize(600, 300);
 	renderWindow->SetWindowName("StructuredDataTypes");
 
-	// And one interactor
+	//交互器（观众与演员的交互）
 	vtkNew<vtkRenderWindowInteractor> interactor;
 	interactor->SetRenderWindow(renderWindow);
 
+	//@视口@多个
+	//定义视口范围
 	// Define viewport ranges
 	// (xmin, ymin, xmax, ymax)
-	double leftViewport[4] = { 0.0, 0.0, 0.33, 1.0 };
-	double centerViewport[4] = { 0.33, 0.0, 0.66, 1.0 };
-	double rightViewport[4] = { 0.66, 0.0, 1.0, 1.0 };
+	double leftViewport[4] = {0.0, 0.0, 0.33, 1.0};
+	double centerViewport[4] = {0.33, 0.0, 0.66, 1.0};
+	double rightViewport[4] = {0.66, 0.0, 1.0, 1.0};
 
+	//创建三个渲染器（三个舞台、渲染场景）
+	//@多视口
 	// Setup three renderers
 	vtkNew<vtkRenderer> leftRenderer;
 	renderWindow->AddRenderer(leftRenderer);
@@ -108,92 +122,98 @@ int main(int, char*[])
 	return EXIT_SUCCESS;
 }
 
-namespace {
-
-void ImageData(vtkImageData* data, const int gridSize)
+namespace
 {
-
-	data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
-	data->AllocateScalars(VTK_DOUBLE, 1);
-
-	vtkNew<vtkXMLImageDataWriter> writer;
-	writer->SetFileName("imagedata.vti");
-	writer->SetInputData(data);
-	writer->Write();
-}
-
-void RectilinearGrid(vtkRectilinearGrid* data, const int gridSize)
-{
-
-	data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
-
-	vtkNew<vtkDoubleArray> xCoords;
-	xCoords->SetNumberOfComponents(1);
-	vtkNew<vtkDoubleArray> yCoords;
-	yCoords->SetNumberOfComponents(1);
-	vtkNew<vtkDoubleArray> zCoords;
-	zCoords->SetNumberOfComponents(1);
-
-	for(int i = 0; i < gridSize; i++)
+	void ImageData(vtkImageData* data, const int gridSize)
 	{
-		if(i == 0)
-		{
-			xCoords->InsertNextValue(0);
-			yCoords->InsertNextValue(0);
-			zCoords->InsertNextValue(0);
-			continue;
-		}
-
-		double oldX = xCoords->GetValue(i - 1);
-		double oldY = xCoords->GetValue(i - 1);
-		double oldZ = xCoords->GetValue(i - 1);
-		xCoords->InsertNextValue(oldX + i * i);
-		yCoords->InsertNextValue(oldY + i * i);
-		zCoords->InsertNextValue(oldZ + i * i);
+		//网格坐标的范围（i,j,k的范围）
+		data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
+		//分配标量点：double类型，一个通道
+		data->AllocateScalars(VTK_DOUBLE, 1);
+		//@vtkImageData@保存
+		vtkNew<vtkXMLImageDataWriter> writer;
+		writer->SetFileName("imagedata.vti");
+		writer->SetInputData(data);
+		writer->Write();
 	}
 
-	data->SetXCoordinates(xCoords);
-	data->SetYCoordinates(yCoords);
-	data->SetZCoordinates(zCoords);
-
-	vtkNew<vtkXMLRectilinearGridWriter> writer;
-	writer->SetFileName("rectilineargrid.vtr");
-	writer->SetInputData(data);
-	writer->Write();
-}
-
-void StructuredGrid(vtkStructuredGrid* data, const int gridSize)
-{
-	data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
-	vtkNew<vtkPoints> points;
-
-	vtkNew<vtkTransform> transform;
-	transform->RotateZ(30);
-
-	for(int k = 0; k < gridSize; k++)
+	void RectilinearGrid(vtkRectilinearGrid* data, const int gridSize)
 	{
-		for(int j = 0; j < gridSize; j++)
-		{
-			for(int i = 0; i < gridSize; i++)
-			{
-				double p[4];
-				p[0] = i;
-				p[1] = j;
-				p[2] = k;
-				p[3] = 1;
-				double pout[4];
-				transform->MultiplyPoint(p, pout);
+		//网格坐标的范围
+		data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
 
-				points->InsertNextPoint(pout[0], pout[1], pout[2]);
+		//设置XYZ坐标
+		//@vtkDoubleArray@用法
+		vtkNew<vtkDoubleArray> xCoords;
+		xCoords->SetNumberOfComponents(1);
+		vtkNew<vtkDoubleArray> yCoords;
+		yCoords->SetNumberOfComponents(1);
+		vtkNew<vtkDoubleArray> zCoords;
+		zCoords->SetNumberOfComponents(1);
+
+		for (int i = 0; i < gridSize; i++)
+		{
+			if (i == 0)
+			{
+				xCoords->InsertNextValue(0);
+				yCoords->InsertNextValue(0);
+				zCoords->InsertNextValue(0);
+				continue;
+			}
+
+			double oldX = xCoords->GetValue(i - 1);
+			double oldY = xCoords->GetValue(i - 1);
+			double oldZ = xCoords->GetValue(i - 1);
+			xCoords->InsertNextValue(oldX + i * i);
+			yCoords->InsertNextValue(oldY + i * i);
+			zCoords->InsertNextValue(oldZ + i * i);
+		}
+
+		data->SetXCoordinates(xCoords);
+		data->SetYCoordinates(yCoords);
+		data->SetZCoordinates(zCoords);
+
+		//@vtkRectilinearGrid@保存
+		vtkNew<vtkXMLRectilinearGridWriter> writer;
+		writer->SetFileName("rectilineargrid.vtr");
+		writer->SetInputData(data);
+		writer->Write();
+	}
+
+	void StructuredGrid(vtkStructuredGrid* data, const int gridSize)
+	{
+		//网格范围
+		data->SetExtent(0, gridSize - 1, 0, gridSize - 1, 0, gridSize - 1);
+		vtkNew<vtkPoints> points;
+
+		vtkNew<vtkTransform> transform;
+		transform->RotateZ(30);
+
+		for (int k = 0; k < gridSize; k++)
+		{
+			for (int j = 0; j < gridSize; j++)
+			{
+				for (int i = 0; i < gridSize; i++)
+				{
+					double p[4];
+					p[0] = i;
+					p[1] = j;
+					p[2] = k;
+					p[3] = 1;
+					double pout[4];
+					transform->MultiplyPoint(p, pout);
+
+					points->InsertNextPoint(pout[0], pout[1], pout[2]);
+				}
 			}
 		}
+
+		data->SetPoints(points);
+
+		//@vtkStructuredGrid@保存
+		vtkNew<vtkXMLStructuredGridWriter> writer;
+		writer->SetFileName("structuredgrid.vts");
+		writer->SetInputData(data);
+		writer->Write();
 	}
-
-	data->SetPoints(points);
-
-	vtkNew<vtkXMLStructuredGridWriter> writer;
-	writer->SetFileName("structuredgrid.vts");
-	writer->SetInputData(data);
-	writer->Write();
-}
 } // namespace

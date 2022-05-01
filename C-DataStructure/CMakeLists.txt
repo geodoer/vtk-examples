@@ -1,8 +1,8 @@
 ﻿cmake_minimum_required(VERSION 2.8.12)
-project(vtk-simple)
+project(vtk-DataStructure)
 
 # Set "vtk-config.cmake" file directory, So that 'find_package' finds VTK
-set(VTK_DIR "D:/install/vtk-9.1.0.rc4-static/lib/cmake/vtk-9.1")
+set(VTK_DIR "D:/install/vtk-9.1.0.rc4-vc16-static-debug/lib/cmake/vtk-9.1")
 
 #
 # Find VTK
@@ -14,12 +14,18 @@ COMPONENTS
   vtkCommonDataModel
   vtkCommonTransforms
   vtkIOXML
+	#渲染
   vtkInteractionStyle
   vtkRenderingContextOpenGL2
   vtkRenderingCore
   vtkRenderingFreeType
   vtkRenderingGL2PSOpenGL2
   vtkRenderingOpenGL2
+ 	#image
+   vtkImagingCore
+   vtkImagingSources
+   vtkImagingMath
+   vtkInteractionImage
  QUIET)
 if (NOT VTK_FOUND)
   message("Fatal Find VTK: ${VTK_NOT_FOUND_MESSAGE}")
@@ -49,7 +55,7 @@ foreach(file ${files})
   STRING(REGEX REPLACE "${Project_Src_Dir}(.+)/.+" "\\1" DIR ${file})
 
   #创建工程 
-	add_executable(${name} MACOSX_BUNDLE ${file} ${Project_Headers_Files})
+  add_executable(${name} MACOSX_BUNDLE ${file} ${Project_Headers_Files})
 
   # Add a reference to VTK for the executable
   if (VTK_VERSION VERSION_LESS "8.90.0")
